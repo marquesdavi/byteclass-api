@@ -1,0 +1,19 @@
+services:
+  mysql:
+    image: 'mysql:latest'
+    environment:
+      MYSQL_DATABASE: byteclass_db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  redis:
+    image: 'redis:latest'
+    ports:
+      - '6379:6379'
+
+volumes:
+  mysql-data:
