@@ -3,7 +3,7 @@ package br.com.marques.byteclass.course;
 import br.com.marques.byteclass.feature.course.entity.Course;
 import br.com.marques.byteclass.feature.course.controller.CourseController;
 import br.com.marques.byteclass.feature.course.repository.CourseRepository;
-import br.com.marques.byteclass.feature.course.dto.NewCourseDTO;
+import br.com.marques.byteclass.feature.course.dto.CourseRequest;
 import br.com.marques.byteclass.feature.user.entity.Role;
 import br.com.marques.byteclass.feature.user.entity.User;
 import br.com.marques.byteclass.feature.user.repository.UserRepository;
@@ -36,7 +36,7 @@ class CourseControllerTest {
     @Test
     void newCourseDTO__should_return_bad_request_when_email_is_invalid() throws Exception {
 
-        NewCourseDTO newCourseDTO = new NewCourseDTO();
+        CourseRequest newCourseDTO = new CourseRequest();
         newCourseDTO.setTitle("Java");
         newCourseDTO.setDescription("Curso de Java");
         newCourseDTO.setEmailInstructor("paulo@alura.com.br");
@@ -56,7 +56,7 @@ class CourseControllerTest {
     @Test
     void newCourseDTO__should_return_bad_request_when_email_is_no_instructor() throws Exception {
 
-        NewCourseDTO newCourseDTO = new NewCourseDTO();
+        CourseRequest newCourseDTO = new CourseRequest();
         newCourseDTO.setTitle("Java");
         newCourseDTO.setDescription("Curso de Java");
         newCourseDTO.setEmailInstructor("paulo@alura.com.br");
@@ -78,7 +78,7 @@ class CourseControllerTest {
     @Test
     void newCourseDTO__should_return_created_when_new_course_request_is_valid() throws Exception {
 
-        NewCourseDTO newCourseDTO = new NewCourseDTO();
+        CourseRequest newCourseDTO = new CourseRequest();
         newCourseDTO.setTitle("Java");
         newCourseDTO.setDescription("Curso de Java");
         newCourseDTO.setEmailInstructor("paulo@alura.com.br");

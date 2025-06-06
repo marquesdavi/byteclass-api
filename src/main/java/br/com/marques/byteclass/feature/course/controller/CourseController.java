@@ -2,7 +2,7 @@ package br.com.marques.byteclass.feature.course.controller;
 
 import br.com.marques.byteclass.feature.course.dto.CourseListItemDTO;
 import br.com.marques.byteclass.feature.course.repository.CourseRepository;
-import br.com.marques.byteclass.feature.course.dto.NewCourseDTO;
+import br.com.marques.byteclass.feature.course.dto.CourseRequest;
 import br.com.marques.byteclass.feature.course.entity.Course;
 import br.com.marques.byteclass.common.util.ErrorItemDTO;
 import br.com.marques.byteclass.feature.user.entity.User;
@@ -29,7 +29,7 @@ public class CourseController {
 
     @Transactional
     @PostMapping("/course/new")
-    public ResponseEntity createCourse(@Valid @RequestBody NewCourseDTO newCourse) {
+    public ResponseEntity createCourse(@Valid @RequestBody CourseRequest newCourse) {
 
         //Caso implemente o bonus, pegue o instrutor logado
         Optional<User> possibleAuthor = userRepository

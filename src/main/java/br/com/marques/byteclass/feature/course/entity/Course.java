@@ -2,17 +2,21 @@ package br.com.marques.byteclass.feature.course.entity;
 
 import br.com.marques.byteclass.feature.user.entity.User;
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.util.Assert;
 
 import java.time.LocalDateTime;
 
+@Data
 @Entity
+@NoArgsConstructor
 public class Course {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private LocalDateTime createdAt = LocalDateTime.now();
     private String title;
     private String description;
     @ManyToOne
@@ -20,9 +24,8 @@ public class Course {
     @Enumerated(EnumType.STRING)
     private Status status;
     private LocalDateTime publishedAt;
-
-    @Deprecated
-    public Course(){}
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
     public Course(String title, String description, User instructor) {
         Assert.isTrue(instructor.isInstructor(), "Usuario deve ser um instrutor");
@@ -30,37 +33,5 @@ public class Course {
         this.instructor = instructor;
         this.description = description;
         this.status = Status.BUILDING;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    public User getInstructor() {
-        return instructor;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public LocalDateTime getPublishedAt() {
-        return publishedAt;
     }
 }

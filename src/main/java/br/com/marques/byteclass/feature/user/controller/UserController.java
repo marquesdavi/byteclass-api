@@ -88,15 +88,4 @@ public class UserController {
         List<User> users = service.list();
         return ResponseEntity.ok(users);
     }
-
-    @Operation(summary = "Get users(collaborators) by board id")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Users found"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
-    })
-    @GetMapping("/board/{id}")
-    public ResponseEntity<List<UserSummary>> listByBoard(@PathVariable("id") UUID id) {
-        List<UserSummary> users = service.listByBoardId(id);
-        return ResponseEntity.ok(users);
-    }
 }
