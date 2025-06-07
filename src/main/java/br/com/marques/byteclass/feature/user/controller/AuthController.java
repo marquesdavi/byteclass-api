@@ -1,9 +1,8 @@
-package br.com.marques.byteclass.feature.auth.controller;
+package br.com.marques.byteclass.feature.user.controller;
 
-import br.com.marques.byteclass.feature.auth.dto.LoginRequest;
-import br.com.marques.byteclass.feature.auth.dto.TokenResponse;
-import br.com.marques.byteclass.feature.auth.service.AuthenticationService;
-import br.com.marques.byteclass.feature.user.entity.User;
+import br.com.marques.byteclass.feature.user.api.dto.LoginRequest;
+import br.com.marques.byteclass.feature.user.api.dto.TokenResponse;
+import br.com.marques.byteclass.feature.user.api.AuthenticationApi;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -22,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 @Tag(name = "User Authentication", description = "User Authentication management")
 public class AuthController {
-    private final AuthenticationService<User, LoginRequest, TokenResponse> service;
+    private final AuthenticationApi service;
 
     @Operation(summary = "Returns a JWT token")
     @ApiResponses(value = {

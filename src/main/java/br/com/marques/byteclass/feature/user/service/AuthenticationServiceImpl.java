@@ -1,12 +1,12 @@
-package br.com.marques.byteclass.feature.auth.service;
+package br.com.marques.byteclass.feature.user.service;
 
 import br.com.marques.byteclass.config.resilience.Resilient;
-import br.com.marques.byteclass.feature.auth.dto.LoginRequest;
-import br.com.marques.byteclass.feature.auth.dto.TokenResponse;
-import br.com.marques.byteclass.feature.user.dto.UserRequest;
-import br.com.marques.byteclass.feature.user.dto.UserSummary;
-import br.com.marques.byteclass.feature.user.entity.User;
-import br.com.marques.byteclass.feature.user.service.UserService;
+import br.com.marques.byteclass.feature.user.api.AuthenticationApi;
+import br.com.marques.byteclass.feature.user.api.dto.LoginRequest;
+import br.com.marques.byteclass.feature.user.api.dto.TokenResponse;
+import br.com.marques.byteclass.feature.user.api.dto.UserSummary;
+import br.com.marques.byteclass.feature.user.api.dto.UserDetailsInternal;
+import br.com.marques.byteclass.feature.user.api.UserApi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,11 +25,10 @@ import java.util.Objects;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AuthenticationServiceImpl
-        implements AuthenticationService<User, LoginRequest, TokenResponse> {
+public class AuthenticationServiceImpl implements AuthenticationApi {
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtEncoder jwtEncoder;
-    private final UserService<User, UserRequest, UserSummary> userService;
+    private final UserApi userApi;
 
     @Value("${jwt.token.expires-in:3600}")
     private long expiresIn;
@@ -38,9 +37,9 @@ public class AuthenticationServiceImpl
     @Override
     @Resilient(rateLimiter = "RateLimiter", circuitBreaker = "CircuitBreaker")
     public TokenResponse authenticate(LoginRequest request) {
-        User user = userService.findByEmail(request.email());
+        UserDetailsInternal user = userApi.findByEmail(request.email());
 
-        if (Objects.isNull(user) || !isPasswordCorrect(request.password(), user.getPassword())) {
+        if (Objects.isNull(user) || !isPasswordCorrect(request.password(), user.password())) {
             throw new BadCredentialsException("Usuário ou senha inválidos!");
         }
         return generateResponse(user);
@@ -50,29 +49,29 @@ public class AuthenticationServiceImpl
         return passwordEncoder.matches(requestPassword, userPassword);
     }
 
-    private TokenResponse generateResponse(User user) {
+    private TokenResponse generateResponse(UserDetailsInternal user) {
         JwtClaimsSet claims = buildJwtClaimsSet(user);
         String jwtValue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
         return new TokenResponse(jwtValue, expiresIn);
     }
 
-    private JwtClaimsSet buildJwtClaimsSet(User user) {
+    private JwtClaimsSet buildJwtClaimsSet(UserDetailsInternal user) {
         Instant now = Instant.now();
 
         return JwtClaimsSet.builder()
                 .issuer(ISSUER)
-                .subject(user.getId().toString())
+                .subject(user.id().toString())
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(expiresIn))
-                .claim("role", user.getRole().name())
+                .claim("role", user.role().name())
                 .build();
     }
 
     @Override
     @Resilient(rateLimiter = "RateLimiter", circuitBreaker = "CircuitBreaker")
-    public User getAuthenticated(){
+    public UserSummary getAuthenticated(){
         Authentication currentSession = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(currentSession.getName());
-        return userService.findByIdOrElseThrow(userId);
+        return userApi.getById(userId);
     }
 }
