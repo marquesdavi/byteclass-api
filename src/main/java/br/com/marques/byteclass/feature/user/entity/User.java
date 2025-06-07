@@ -18,7 +18,7 @@ import java.util.Objects;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users")
+@Table(name = "tb_user")
 public class User implements Serializable {
 
     @Id
@@ -29,7 +29,6 @@ public class User implements Serializable {
     @Column(unique = true)
     private String email;
     private String password;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
