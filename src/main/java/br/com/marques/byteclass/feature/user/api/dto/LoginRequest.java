@@ -1,4 +1,4 @@
-package br.com.marques.byteclass.feature.auth.dto;
+package br.com.marques.byteclass.feature.user.api.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
