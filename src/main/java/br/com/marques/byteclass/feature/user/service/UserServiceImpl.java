@@ -1,103 +1,86 @@
 package br.com.marques.byteclass.feature.user.service;
 
-import br.com.marques.byteclass.common.exception.AlreadyExistsException;
-import br.com.marques.byteclass.common.exception.NotFoundException;
-import br.com.marques.byteclass.config.resilience.Resilient;
-import br.com.marques.byteclass.feature.user.dto.UserRequest;
-import br.com.marques.byteclass.feature.user.dto.UserSummary;
-import br.com.marques.byteclass.feature.user.entity.Role;
+import br.com.marques.byteclass.feature.user.api.UserApi;
+import br.com.marques.byteclass.feature.user.api.dto.UserRequest;
+import br.com.marques.byteclass.feature.user.api.dto.UserSummary;
+import br.com.marques.byteclass.feature.user.api.dto.UserDetailsInternal;
+import br.com.marques.byteclass.feature.user.api.mapper.UserRequestMapper;
+import br.com.marques.byteclass.feature.user.api.mapper.UserSummaryMapper;
 import br.com.marques.byteclass.feature.user.entity.User;
 import br.com.marques.byteclass.feature.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import br.com.marques.byteclass.common.exception.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
-@Slf4j
 @Service
+@Validated
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService<User, UserRequest, UserSummary> {
+public class UserServiceImpl implements UserApi {
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder encoder;
+    private final UserRequestMapper requestMapper;
+    private final UserSummaryMapper summaryMapper;
 
     @Override
     @Transactional
-    @Resilient(rateLimiter = "RateLimiter", circuitBreaker = "CircuitBreaker")
-    public void create(UserRequest dto) {
-        log.info("Creating new user with email: {}", dto.email());
-        existsByEmail(dto.email());
+    public Long create(@Valid UserRequest dto) {
+        if (userRepository.existsByEmail(dto.email()))
+            throw new AlreadyExistsException(String.format("User with email %s already exists!", dto.email()));
 
-        User user = User.fromRequest(dto);
-        user.setRole(Role.STUDENT);
-
-        userRepository.save(user);
-        log.info("User with email {} successfully created.", dto.email());
-    }
-
-    public void existsByEmail(String email) {
-        if (userRepository.existsByEmail(email)) {
-            log.warn("User with email {} already exists!", email);
-            throw new AlreadyExistsException("User already exists");
-        }
-    }
-
-    @Override
-    @Resilient(rateLimiter = "RateLimiter", circuitBreaker = "CircuitBreaker")
-    public List<User> list() {
-        return userRepository.findAll();
-    }
-
-    @Override
-    @Resilient(rateLimiter = "RateLimiter", circuitBreaker = "CircuitBreaker")
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-    }
-
-    @Override
-    public User findByIdOrElseThrow(Long id) {
-        return userRepository.findById(id).orElseThrow(
-                () -> new NotFoundException("User not found")
-        );
+        User u = requestMapper.toEntity(dto);
+        u.setPassword(encoder.encode(dto.password()));
+        userRepository.save(u);
+        return u.getId();
     }
 
     @Override
     @Transactional
-    @Resilient(rateLimiter = "RateLimiter", circuitBreaker = "CircuitBreaker")
     public void update(Long id, UserRequest dto) {
-        log.info("Updating user id={} with email: {}", id, dto.email());
-        User existing = findByIdOrElseThrow(id);
+        User instance = findByIdOrElseThrow(id);
 
-        if (!existing.getEmail().equals(dto.email())) {
-            existsByEmail(dto.email());
-            existing.setEmail(dto.email());
-        }
+        if (!instance.getEmail().equals(dto.email()) && userRepository.existsByEmail(dto.email()))
+            throw new AlreadyExistsException(String.format("User with email %s already exists!", dto.email()));
 
-        existing.setName(dto.name());
-        String encodedPassword = passwordEncoder.encode(dto.password());
-        existing.setPassword(encodedPassword);
-
-        userRepository.save(existing);
-        log.info("User id={} successfully updated.", id);
+        requestMapper.updateEntityFromDto(dto, instance);
+        instance.setPassword(encoder.encode(dto.password()));
+        userRepository.save(instance);
     }
 
     @Override
-    @Resilient(rateLimiter = "RateLimiter", circuitBreaker = "CircuitBreaker")
-    public User getByID(Long id) {
-        log.info("Fetching user by id={}", id);
-        return findByIdOrElseThrow(id);
+    public UserSummary getById(@Min(1) Long id) {
+        User instance = findByIdOrElseThrow(id);
+        return summaryMapper.toDto(instance);
+    }
+
+    @Override
+    public List<UserSummary> list() {
+        return userRepository.findAll().stream()
+                .map(summaryMapper::toDto)
+                .toList();
     }
 
     @Override
     @Transactional
-    @Resilient(rateLimiter = "RateLimiter", circuitBreaker = "CircuitBreaker")
-    public void deleteAccount(Long id) {
-        log.info("Deleting user id={}", id);
-        User existing = findByIdOrElseThrow(id);
-        userRepository.delete(existing);
-        log.info("User id={} successfully deleted.", id);
+    public void delete(Long id) {
+        User u = findByIdOrElseThrow(id);
+        userRepository.delete(u);
+    }
+
+    @Override
+    public UserDetailsInternal findByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException(String.format("User with email %s not found!", email)));
+        return summaryMapper.toInternalDto(user);
+    }
+
+    private User findByIdOrElseThrow(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
     }
 }
