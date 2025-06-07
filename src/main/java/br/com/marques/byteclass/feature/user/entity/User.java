@@ -1,15 +1,17 @@
 package br.com.marques.byteclass.feature.user.entity;
 
-import br.com.marques.byteclass.feature.user.dto.UserRequest;
+import br.com.marques.byteclass.feature.user.api.dto.UserRequest;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 
@@ -20,7 +22,6 @@ import java.util.Objects;
 @AllArgsConstructor
 @Table(name = "tb_user")
 public class User implements Serializable {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,6 +33,11 @@ public class User implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     public User(String name, String mail, Role role) {
         User.builder()
