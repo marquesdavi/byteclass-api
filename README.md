@@ -1,5 +1,5 @@
 # Case Tecnico Alura
-Seja bem-vindo ao teste para desenvolvedor Java Júnior da Alura. Neste
+Neste
 desafio, simulamos uma parte do nosso domínio para que você possa demonstrar seus conhecimentos. 
 Não há respostas certas ou erradas, nosso objetivo é avaliar como você aplica lógica e 
 conceitos de orientação a objetos para solucionar problemas.

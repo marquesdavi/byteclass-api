@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -39,17 +40,22 @@ public class ResilientAspect {
                         joinPoint.getSignature().getName(), e.getMessage());
                 throw e;
             }
-            log.error("Resilience error in method {}: {}", joinPoint.getSignature().getName(), e.getMessage());
-            if (!resilient.fallbackMethod().isEmpty()) {
-                Object fallbackResult = invokeFallback(joinPoint, resilient.fallbackMethod(), e);
-                if (Objects.nonNull(fallbackResult)) {
-                    return fallbackResult;
-                } else {
-                    throw new RuntimeException("Fallback method returned null.", e);
-                }
-            }
-            throw new RuntimeException("Default fallback: Operation temporarily unavailable.", e);
+            return handleFallback(joinPoint, resilient, e);
         }
+    }
+
+    @NotNull
+    private Object handleFallback(ProceedingJoinPoint joinPoint, Resilient resilient, Exception e) throws Throwable {
+        log.error("Resilience error in method {}: {}", joinPoint.getSignature().getName(), e.getMessage());
+        if (!resilient.fallbackMethod().isEmpty()) {
+            Object fallbackResult = invokeFallback(joinPoint, resilient.fallbackMethod(), e);
+            if (Objects.nonNull(fallbackResult)) {
+                return fallbackResult;
+            } else {
+                throw new RuntimeException("Fallback method returned null.", e);
+            }
+        }
+        throw new RuntimeException("Default fallback: Operation temporarily unavailable.", e);
     }
 
     private boolean containsRequestNotPermitted(Throwable t) {
@@ -93,6 +99,7 @@ public class ResilientAspect {
         return supplier;
     }
 
+    // From here, the methods were built to do custom fallbacks
     private Object invokeFallback(ProceedingJoinPoint joinPoint, String fallbackMethodName, Exception exception)
             throws Throwable {
         Object target = joinPoint.getTarget();
