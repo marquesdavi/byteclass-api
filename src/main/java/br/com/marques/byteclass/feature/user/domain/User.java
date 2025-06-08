@@ -34,8 +34,4 @@ public class User implements Serializable {
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-
-    public boolean isInstructor() {
-        return Role.INSTRUCTOR.equals(this.role);
-    }
 }

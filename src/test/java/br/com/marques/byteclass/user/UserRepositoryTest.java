@@ -1,12 +1,9 @@
 package br.com.marques.byteclass.user;
 
-import br.com.marques.byteclass.feature.user.repository.UserRepository;
-import org.junit.jupiter.api.Test;
+import br.com.marques.byteclass.feature.user.adapter.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 

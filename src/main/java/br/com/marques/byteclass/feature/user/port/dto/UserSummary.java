@@ -10,7 +10,4 @@ public record UserSummary(
         String email,
         Role role
 ) {
-    public boolean isInstructor() {
-        return this.role().name().equals(Role.INSTRUCTOR.name());
-    }
 }
