@@ -20,7 +20,7 @@ public class Task {
     private Long id;
     @Column(name = "course_id", nullable = false)
     private Long courseId;
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String statement;
     @Column(name = "task_order", nullable = false)
     private Integer taskOrder;
