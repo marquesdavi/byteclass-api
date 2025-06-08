@@ -6,7 +6,6 @@ CREATE TABLE tb_course (
     instructor_id bigint(20) NOT NULL,
     status enum('BUILDING', 'PUBLISHED') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'BUILDING',
     published_at datetime DEFAULT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT true,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     CONSTRAINT fk_author FOREIGN KEY (instructor_id) REFERENCES tb_user(id) ON DELETE CASCADE

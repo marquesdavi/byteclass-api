@@ -4,8 +4,7 @@ CREATE TABLE tb_user(
     name varchar(70) NOT NULL,
     email varchar(50) NOT NULL,
     role enum('ADMIN','STUDENT', 'INSTRUCTOR') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'STUDENT',
-    password varchar(30) NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT true,
+    password varchar(100) NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     CONSTRAINT UC_Email UNIQUE (email)

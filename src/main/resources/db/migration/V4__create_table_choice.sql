@@ -4,7 +4,6 @@ CREATE TABLE tb_choice (
      content VARCHAR(255) NOT NULL,
      is_correct  BOOLEAN NOT NULL,
      task_id BIGINT,
-     is_active BOOLEAN NOT NULL DEFAULT true,
      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
      PRIMARY KEY (id),
      CONSTRAINT fk_choice_task FOREIGN KEY (task_id) REFERENCES tb_task (id) ON DELETE CASCADE

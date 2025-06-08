@@ -2,10 +2,9 @@
 CREATE TABLE tb_task (
     id BIGINT(20) NOT NULL AUTO_INCREMENT,
     course_id BIGINT(20) NOT NULL,
-    statement VARCHAR(80) NOT NULL,
+    statement VARCHAR(255) NOT NULL,
     task_order INT(11) NOT NULL,
     task_type VARCHAR(30) NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT true,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     CONSTRAINT UNQ_STATEMENT UNIQUE (statement),
