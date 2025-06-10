@@ -31,7 +31,7 @@ public class AuthenticationServiceImpl implements AuthenticationPort {
     private final UserPort userPort;
 
     @Value("${jwt.token.expires-in:3600}")
-    private long expiresIn;
+    private long expiresIn = 3600L;
     private static final String ISSUER = "byteclass-api";
 
     @Override

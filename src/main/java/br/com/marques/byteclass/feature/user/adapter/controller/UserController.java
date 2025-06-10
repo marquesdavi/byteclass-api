@@ -6,11 +6,13 @@ import br.com.marques.byteclass.feature.user.port.dto.UserSummary;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -26,11 +28,10 @@ public class UserController {
     private final UserPort userPort;
 
     @Operation(summary = "Create a new user", description = "Registers a new user with name, email, and password.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "User created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input or email already exists")
-    })
+    @ApiResponse(responseCode = "201", description = "User created successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid input or email already exists")
     @PostMapping
+    @CacheEvict(value = {"users", "userDetails"}, allEntries = true)
     public ResponseEntity<Long> create(
             @Valid @RequestBody UserRequest dto
     ) {
@@ -45,16 +46,16 @@ public class UserController {
     )
     @ApiResponse(responseCode = "200", description = "Users retrieved successfully")
     @GetMapping
+    @Cacheable(value = "users")
     public Page<UserSummary> list(@ParameterObject Pageable pageable) {
         return userPort.list(pageable);
     }
 
     @Operation(summary = "Get user by ID", description = "Fetches details of a single user by their ID.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "User found"),
-            @ApiResponse(responseCode = "404", description = "User not found")
-    })
+    @ApiResponse(responseCode = "200", description = "User found")
+    @ApiResponse(responseCode = "404", description = "User not found")
     @GetMapping("/{id}")
+    @Cacheable(value = "userDetails", key = "#id")
     public UserSummary get(
             @Parameter(description = "ID of the user to retrieve", required = true)
             @PathVariable Long id
@@ -65,12 +66,14 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN') or #id.toString() == authentication.name")
     @Operation(summary = "Update a user",
             description = "Updates name, email, and/or password for an existing user.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "User updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input or email conflict"),
-            @ApiResponse(responseCode = "404", description = "User not found")
-    })
+    @ApiResponse(responseCode = "200", description = "User updated successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid input or email conflict")
+    @ApiResponse(responseCode = "404", description = "User not found")
     @PatchMapping("/{id}")
+    @Caching(evict = {
+            @CacheEvict(value = "userDetails", key = "#id"),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public ResponseEntity<Void> update(
             @Parameter(description = "ID of the user to update", required = true)
             @PathVariable Long id,
@@ -82,11 +85,13 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN') or #id.toString() == authentication.name")
     @Operation(summary = "Delete a user", description = "Soft-deletes or removes a user by ID.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "User deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "User not found")
-    })
+    @ApiResponse(responseCode = "200", description = "User deleted successfully")
+    @ApiResponse(responseCode = "404", description = "User not found")
     @DeleteMapping("/{id}")
+    @Caching(evict = {
+            @CacheEvict(value = "userDetails", key = "#id"),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public ResponseEntity<Void> delete(
             @Parameter(description = "ID of the user to delete", required = true)
             @PathVariable Long id
