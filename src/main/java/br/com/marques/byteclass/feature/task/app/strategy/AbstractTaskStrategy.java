@@ -28,7 +28,7 @@ public abstract class AbstractTaskStrategy implements TaskTypeStrategy {
     @Lazy
     protected final CoursePort courseApi;
 
-    public AbstractTaskStrategy(TaskRepository taskRepository,
+    protected AbstractTaskStrategy(TaskRepository taskRepository,
                                 OptionMapper optionMapper,
                                 @Lazy CoursePort courseApi) {
         this.taskRepository = taskRepository;
@@ -95,7 +95,7 @@ public abstract class AbstractTaskStrategy implements TaskTypeStrategy {
                     c.setTask(saved);
                     return c;
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     static long countCorrect(ChoiceRequest choice) {
