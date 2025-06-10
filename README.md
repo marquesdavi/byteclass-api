@@ -97,7 +97,7 @@ src/
 * **Mapping & Annotations**: Lombok, MapStruct
 * **Caching**: Spring Data Redis
 * **API Docs**: Springdoc OpenAPI (Swagger UI)
-* **Build & Orchestration**: Maven, Docker Compose
+* **Build & Orchestration**: Maven, Docker Compose(MySQL and Redis containers)
 * **Testing**: JUnit 5, Mockito, AssertJ
 
 ---
@@ -108,6 +108,7 @@ src/
 
     * Docker & Docker Compose
     * Java 21+
+    * 3306 and 6369 ports free
 
 2. **Generate RSA Keys**
 
@@ -127,6 +128,7 @@ src/
    ./mvnw clean package
    ./mvnw spring-boot:run
    ```
+Or simply run in your preferred IDE
 
 5. **Access**
 
