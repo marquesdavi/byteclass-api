@@ -1,7 +1,9 @@
 package br.com.marques.byteclass.config.resilience;
 
+import br.com.marques.byteclass.common.exception.GenericException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.core.functions.CheckedSupplier;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
@@ -10,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -27,44 +28,59 @@ public class ResilientAspect {
     private final CircuitBreakerRegistry circuitBreakerRegistry;
 
     @Around("@annotation(resilient)")
-    public Object applyResilience(ProceedingJoinPoint joinPoint, Resilient resilient) throws Throwable {
-        RateLimiter rateLimiter = resolveRateLimiter(resilient.rateLimiter());
-        CircuitBreaker circuitBreaker = resolveCircuitBreaker(resilient.circuitBreaker());
-        Supplier<Object> decoratedSupplier = createDecoratedSupplier(joinPoint, rateLimiter, circuitBreaker);
+    public Object applyResilience(ProceedingJoinPoint joinPoint,
+                                  Resilient resilient) throws Throwable {
+
+        RateLimiter rl = resolveRateLimiter(resilient.rateLimiter());
+        CircuitBreaker cb = resolveCircuitBreaker(resilient.circuitBreaker());
+        Supplier<Object> supplier = createDecoratedSupplier(joinPoint, rl, cb);
 
         try {
-            return decoratedSupplier.get();
-        } catch (Exception e) {
-            if (containsRequestNotPermitted(e)) {
-                log.warn("Request blocked by RateLimiter in method {}: {}",
-                        joinPoint.getSignature().getName(), e.getMessage());
-                throw e;
-            }
-            return handleFallback(joinPoint, resilient, e);
+            return supplier.get();
+        } catch (Exception wrapper) {
+            Throwable cause = (wrapper.getCause() != null) ? wrapper.getCause() : wrapper;
+
+            if (handleCause(joinPoint, resilient, cause)) return invokeFallback(joinPoint,
+                    resilient.fallbackMethod(),
+                    (Exception) cause);
+            throw cause;
         }
     }
 
-    @NotNull
-    private Object handleFallback(ProceedingJoinPoint joinPoint, Resilient resilient, Exception e) throws Throwable {
-        log.error("Resilience error in method {}: {}", joinPoint.getSignature().getName(), e.getMessage());
-        if (!resilient.fallbackMethod().isEmpty()) {
-            Object fallbackResult = invokeFallback(joinPoint, resilient.fallbackMethod(), e);
-            if (Objects.nonNull(fallbackResult)) {
-                return fallbackResult;
-            } else {
-                throw new RuntimeException("Fallback method returned null.", e);
-            }
+    private boolean handleCause(ProceedingJoinPoint joinPoint, Resilient resilient, Throwable cause) throws Throwable {
+        if (cause instanceof RequestNotPermitted) {
+            log.warn("RateLimiter blocked {}: {}",
+                    joinPoint.getSignature(), cause.getMessage());
+            throw cause;
         }
-        throw new RuntimeException("Default fallback: Operation temporarily unavailable.", e);
+        if (cause instanceof GenericException) {
+            throw cause;
+        }
+
+        return !resilient.fallbackMethod().isEmpty();
     }
 
-    private boolean containsRequestNotPermitted(Throwable t) {
-        if (t instanceof RequestNotPermitted) {
-            return true;
-        } else if (Objects.nonNull(t.getCause())) {
-            return containsRequestNotPermitted(t.getCause());
+    private Supplier<Object> createDecoratedSupplier(ProceedingJoinPoint jp,
+                                                     RateLimiter rl,
+                                                     CircuitBreaker cb) {
+        CheckedSupplier<Object> checked = jp::proceed;
+
+        if (cb != null) {
+            checked = CircuitBreaker.decorateCheckedSupplier(cb, checked);
         }
-        return false;
+        if (rl != null) {
+            checked = RateLimiter.decorateCheckedSupplier(rl, checked);
+        }
+
+        final CheckedSupplier<Object> finalChecked = checked;
+
+        return () -> {
+            try {
+                return finalChecked.get();
+            } catch (Throwable t) {
+                throw new RuntimeException(t);
+            }
+        };
     }
 
     private RateLimiter resolveRateLimiter(String rateLimiterName) {
@@ -77,26 +93,6 @@ public class ResilientAspect {
         return (Objects.nonNull(circuitBreakerName) && !circuitBreakerName.isEmpty())
                 ? circuitBreakerRegistry.circuitBreaker(circuitBreakerName)
                 : null;
-    }
-
-    private Supplier<Object> createDecoratedSupplier(ProceedingJoinPoint joinPoint,
-                                                     RateLimiter rateLimiter,
-                                                     CircuitBreaker circuitBreaker) {
-        Supplier<Object> supplier = () -> {
-            try {
-                return joinPoint.proceed();
-            } catch (Throwable throwable) {
-                throw new RuntimeException(throwable);
-            }
-        };
-
-        if (Objects.nonNull(circuitBreaker)) {
-            supplier = CircuitBreaker.decorateSupplier(circuitBreaker, supplier);
-        }
-        if (Objects.nonNull(rateLimiter)) {
-            supplier = RateLimiter.decorateSupplier(rateLimiter, supplier);
-        }
-        return supplier;
     }
 
     // From here, the methods were built to do custom fallbacks
