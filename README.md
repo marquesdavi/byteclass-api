@@ -144,3 +144,6 @@ Or simply run in your preferred IDE
 * **Test Profile**: `application-test.properties` uses H2 in-memory database
 
 ---
+
+### Some references
+* [Dan Vega: Package by Layer vs Package by Feature](https://youtu.be/B1d95I7-zsw?si=Iche5-yNMYfEULcO)
