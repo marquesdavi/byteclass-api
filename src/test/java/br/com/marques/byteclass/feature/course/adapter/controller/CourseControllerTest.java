@@ -1,11 +1,12 @@
 package br.com.marques.byteclass.feature.course.adapter.controller;
 
 import br.com.marques.byteclass.common.exception.NotFoundException;
+import br.com.marques.byteclass.common.util.PageableRequest;
 import br.com.marques.byteclass.feature.course.domain.Status;
 import br.com.marques.byteclass.feature.course.port.CoursePort;
 import br.com.marques.byteclass.feature.course.port.dto.CourseRequest;
 import br.com.marques.byteclass.feature.course.port.dto.CourseSummary;
-import br.com.marques.byteclass.feature.util.CourseTestUtils.*;
+import br.com.marques.byteclass.feature.util.CourseTestUtils.CourseRequestBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,7 +17,10 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -99,17 +103,18 @@ class CourseControllerTest {
             CourseSummary a = Fixtures.summary(1L, "Java");
             CourseSummary b = Fixtures.summary(2L, "Spring");
             Page<CourseSummary> page = new PageImpl<>(List.of(a, b),
-                    PageRequest.of(0, 2, Sort.by("title")), 2);
-            when(coursePort.list(any(Pageable.class))).thenReturn(page);
+                PageRequest.of(0, 2, Sort.by("title")), 2);
+            when(coursePort.list(any(PageableRequest.class))).thenReturn(page);
 
             mvc.perform(get("/api/course")
-                            .param("page", "0")
-                            .param("size", "2")
-                            .param("sort", "title,asc"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.content.length()").value(2))
-                    .andExpect(jsonPath("$.content[0].title").value("Java"))
-                    .andExpect(jsonPath("$.content[1].title").value("Spring"));
+                    .param("page", "0")
+                    .param("size", "2")
+                    .param("direction", "ASC")
+                    .param("orderBy", "title"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].title").value("Java"))
+                .andExpect(jsonPath("$.content[1].title").value("Spring"));
         }
     }
 

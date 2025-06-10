@@ -1,6 +1,7 @@
 package br.com.marques.byteclass.feature.user.adapter.controller;
 
 import br.com.marques.byteclass.common.exception.NotFoundException;
+import br.com.marques.byteclass.common.util.PageableRequest;
 import br.com.marques.byteclass.feature.user.domain.Role;
 import br.com.marques.byteclass.feature.user.port.UserPort;
 import br.com.marques.byteclass.feature.user.port.dto.UserRequest;
@@ -102,21 +103,20 @@ class UserControllerTest {
         void should_return_page() throws Exception {
             UserSummary u1 = Fixtures.summary(1L);
             UserSummary u2 = Fixtures.summary(2L);
-            Page<UserSummary> page = new PageImpl<>(
-                    List.of(u1, u2),
-                    PageRequest.of(0, 2, Sort.by("name")),
-                    2);
+            Page<UserSummary> page = new PageImpl<>(List.of(u1, u2),
+                PageRequest.of(0,2, Sort.by("name")), 2);
 
-            when(userPort.list(any(Pageable.class))).thenReturn(page);
+            when(userPort.list(any(PageableRequest.class))).thenReturn(page);
 
             mvc.perform(get("/api/user")
-                            .param("page", "0")
-                            .param("size", "2")
-                            .param("sort", "name,asc"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.content.length()").value(2))
-                    .andExpect(jsonPath("$.content[0].name").value(u1.name()))
-                    .andExpect(jsonPath("$.content[1].name").value(u2.name()));
+                    .param("page", "0")
+                    .param("size", "2")
+                    .param("direction", "ASC")
+                    .param("orderBy", "name"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].name").value(u1.name()))
+                .andExpect(jsonPath("$.content[1].name").value(u2.name()));
         }
     }
 

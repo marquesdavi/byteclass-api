@@ -2,6 +2,7 @@ package br.com.marques.byteclass.feature.user.app;
 
 import br.com.marques.byteclass.common.exception.AlreadyExistsException;
 import br.com.marques.byteclass.common.exception.NotFoundException;
+import br.com.marques.byteclass.common.util.PageableRequest;
 import br.com.marques.byteclass.feature.user.adapter.repository.UserRepository;
 import br.com.marques.byteclass.feature.user.domain.Role;
 import br.com.marques.byteclass.feature.user.domain.User;
@@ -22,8 +23,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.List;
@@ -76,6 +75,7 @@ class UserServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        // TODO document why this method is empty
     }
 
     @Nested
@@ -195,14 +195,14 @@ class UserServiceImplTest {
         @DisplayName("should return a page of summaries")
         void shouldList() {
             var existing = Fixtures.entity();
-            var pageable = PageRequest.of(0, 10, Sort.by("name"));
-            var pageEnt = new PageImpl<>(List.of(existing), pageable, 1);
+            var pageableRequest = new PageableRequest(0, 10, "ASC", "name");
+            var pageEnt = new PageImpl<>(List.of(existing), pageableRequest.toPageable(), 1);
             var summary = Fixtures.summary(existing);
 
-            when(userRepository.findAll(pageable)).thenReturn(pageEnt);
+            when(userRepository.findAll(pageableRequest.toPageable())).thenReturn(pageEnt);
             when(summaryMapper.toDto(existing)).thenReturn(summary);
 
-            Page<UserSummary> result = service.list(pageable);
+            Page<UserSummary> result = service.list(pageableRequest);
             assertThat(result.getTotalElements()).isEqualTo(1);
             assertThat(result.getContent()).containsExactly(summary);
         }

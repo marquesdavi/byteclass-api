@@ -1,5 +1,6 @@
 package br.com.marques.byteclass.feature.user.adapter.controller;
 
+import br.com.marques.byteclass.common.util.PageableRequest;
 import br.com.marques.byteclass.feature.user.port.UserPort;
 import br.com.marques.byteclass.feature.user.port.dto.UserRequest;
 import br.com.marques.byteclass.feature.user.port.dto.UserSummary;
@@ -14,7 +15,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,7 +47,7 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "Users retrieved successfully")
     @GetMapping
     @Cacheable(value = "users")
-    public Page<UserSummary> list(@ParameterObject Pageable pageable) {
+    public Page<UserSummary> list(@ParameterObject @Valid PageableRequest pageable) {
         return userPort.list(pageable);
     }
 

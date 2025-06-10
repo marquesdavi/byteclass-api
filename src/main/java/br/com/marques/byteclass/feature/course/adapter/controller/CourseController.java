@@ -1,5 +1,6 @@
 package br.com.marques.byteclass.feature.course.adapter.controller;
 
+import br.com.marques.byteclass.common.util.PageableRequest;
 import br.com.marques.byteclass.feature.course.port.CoursePort;
 import br.com.marques.byteclass.feature.course.port.dto.CourseRequest;
 import br.com.marques.byteclass.feature.course.port.dto.CourseSummary;
@@ -14,7 +15,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,9 +51,9 @@ public class CourseController {
     @GetMapping
     @Cacheable(value = "courses")
     public Page<CourseSummary> list(
-            @ParameterObject Pageable pageable
+        @ParameterObject @Valid PageableRequest pageableRequest
     ) {
-        return coursePort.list(pageable);
+        return coursePort.list(pageableRequest);
     }
 
     @Operation(summary = "Get course by ID", description = "Retrieves details of a specific course by its ID.")

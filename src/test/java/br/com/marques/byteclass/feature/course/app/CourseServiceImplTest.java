@@ -1,6 +1,7 @@
 package br.com.marques.byteclass.feature.course.app;
 
 import br.com.marques.byteclass.common.exception.NotFoundException;
+import br.com.marques.byteclass.common.util.PageableRequest;
 import br.com.marques.byteclass.feature.course.adapter.repository.CourseRepository;
 import br.com.marques.byteclass.feature.course.app.facade.CoursePublishingFacade;
 import br.com.marques.byteclass.feature.course.domain.Course;
@@ -9,10 +10,10 @@ import br.com.marques.byteclass.feature.course.port.dto.CourseRequest;
 import br.com.marques.byteclass.feature.course.port.dto.CourseSummary;
 import br.com.marques.byteclass.feature.course.port.mapper.CourseRequestMapper;
 import br.com.marques.byteclass.feature.course.port.mapper.CourseResponseMapper;
-import br.com.marques.byteclass.feature.util.CourseTestUtils.CourseRequestBuilder;
 import br.com.marques.byteclass.feature.user.domain.Role;
 import br.com.marques.byteclass.feature.user.port.AuthenticationPort;
 import br.com.marques.byteclass.feature.user.port.dto.UserSummary;
+import br.com.marques.byteclass.feature.util.CourseTestUtils.CourseRequestBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,8 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 
 import java.util.List;
 import java.util.Optional;
@@ -111,19 +113,21 @@ class CourseServiceImplTest {
         void should_return_page() {
             Course c1 = Fixtures.domainCourse(1L);
             Course c2 = Fixtures.domainCourse(2L);
-            Page<Course> pageDomain = new PageImpl<>(List.of(c1, c2), PageRequest.of(0,2), 2);
+            PageableRequest req = new PageableRequest(0, 2, "ASC", "title");
+            var pageable = req.toPageable();
+            Page<Course> pageDomain = new PageImpl<>(List.of(c1, c2), pageable, 2);
             CourseSummary s1 = Fixtures.summary(1L);
             CourseSummary s2 = Fixtures.summary(2L);
 
-            when(courseRepository.findAll(any(Pageable.class)))
-                    .thenReturn(pageDomain);
+            when(courseRepository.findAll(pageable))
+                .thenReturn(pageDomain);
             when(summaryMapper.toDto(c1)).thenReturn(s1);
             when(summaryMapper.toDto(c2)).thenReturn(s2);
 
-            Page<CourseSummary> page = service.list(PageRequest.of(0,2, Sort.by("title")));
+            Page<CourseSummary> page = service.list(req);
 
             assertThat(page.getContent()).containsExactly(s1, s2);
-            verify(courseRepository).findAll(any(Pageable.class));
+            verify(courseRepository).findAll(pageable);
         }
     }
 

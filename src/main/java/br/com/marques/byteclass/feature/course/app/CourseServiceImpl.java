@@ -1,15 +1,16 @@
 package br.com.marques.byteclass.feature.course.app;
 
 import br.com.marques.byteclass.common.exception.NotFoundException;
+import br.com.marques.byteclass.common.util.PageableRequest;
 import br.com.marques.byteclass.config.resilience.Resilient;
+import br.com.marques.byteclass.feature.course.adapter.repository.CourseRepository;
+import br.com.marques.byteclass.feature.course.app.facade.CoursePublishingFacade;
+import br.com.marques.byteclass.feature.course.domain.Course;
 import br.com.marques.byteclass.feature.course.port.CoursePort;
 import br.com.marques.byteclass.feature.course.port.dto.CourseRequest;
 import br.com.marques.byteclass.feature.course.port.dto.CourseSummary;
 import br.com.marques.byteclass.feature.course.port.mapper.CourseRequestMapper;
 import br.com.marques.byteclass.feature.course.port.mapper.CourseResponseMapper;
-import br.com.marques.byteclass.feature.course.domain.Course;
-import br.com.marques.byteclass.feature.course.adapter.repository.CourseRepository;
-import br.com.marques.byteclass.feature.course.app.facade.CoursePublishingFacade;
 import br.com.marques.byteclass.feature.user.port.AuthenticationPort;
 import br.com.marques.byteclass.feature.user.port.dto.UserSummary;
 import jakarta.transaction.Transactional;
@@ -17,7 +18,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -43,9 +43,10 @@ public class CourseServiceImpl implements CoursePort {
 
     @Override
     @Resilient(rateLimiter = "RateLimiter", circuitBreaker = "CircuitBreaker")
-    public Page<CourseSummary> list(Pageable pageable) {
+    public Page<CourseSummary> list(PageableRequest pageableRequest) {
+        var pageable = pageableRequest.toPageable();
         return courseRepository.findAll(pageable)
-                .map(summaryMapper::toDto);
+            .map(summaryMapper::toDto);
     }
 
     @Override

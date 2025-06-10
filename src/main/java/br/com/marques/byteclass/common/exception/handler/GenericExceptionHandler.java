@@ -5,6 +5,7 @@ import br.com.marques.byteclass.common.exception.GenericException;
 import br.com.marques.byteclass.common.exception.NotFoundException;
 import br.com.marques.byteclass.common.exception.vo.ErrorResponse;
 import br.com.marques.byteclass.common.exception.vo.ValidationError;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -99,6 +100,13 @@ public class GenericExceptionHandler {
     public ResponseEntity<ErrorResponse> handleRateLimiterException(RequestNotPermitted ex) {
         log.error("RateLimiter exception: {}", ex.getMessage());
         return buildErrorResponse("Too many requests - please try again later.", HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    @ExceptionHandler(CallNotPermittedException.class)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    public ResponseEntity<ErrorResponse> handleCallNotPermittedException(CallNotPermittedException ex) {
+        log.error("CallNotPermittedException exception: {}", ex.getMessage());
+        return buildErrorResponse("CircuitBreaker is OPEN and does not permit further calls.", HttpStatus.TOO_MANY_REQUESTS);
     }
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(String message, HttpStatus status) {

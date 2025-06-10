@@ -2,20 +2,20 @@ package br.com.marques.byteclass.feature.user.app;
 
 import br.com.marques.byteclass.common.exception.AlreadyExistsException;
 import br.com.marques.byteclass.common.exception.NotFoundException;
+import br.com.marques.byteclass.common.util.PageableRequest;
 import br.com.marques.byteclass.config.resilience.Resilient;
+import br.com.marques.byteclass.feature.user.adapter.repository.UserRepository;
+import br.com.marques.byteclass.feature.user.domain.User;
 import br.com.marques.byteclass.feature.user.port.UserPort;
 import br.com.marques.byteclass.feature.user.port.dto.UserDetailsInternal;
 import br.com.marques.byteclass.feature.user.port.dto.UserRequest;
 import br.com.marques.byteclass.feature.user.port.dto.UserSummary;
 import br.com.marques.byteclass.feature.user.port.mapper.UserRequestMapper;
 import br.com.marques.byteclass.feature.user.port.mapper.UserResponseMapper;
-import br.com.marques.byteclass.feature.user.domain.User;
-import br.com.marques.byteclass.feature.user.adapter.repository.UserRepository;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,8 +66,8 @@ public class UserServiceImpl implements UserPort {
 
     @Override
     @Resilient(rateLimiter = "RateLimiter", circuitBreaker = "CircuitBreaker")
-    public Page<UserSummary> list(Pageable pageable) {
-        return userRepository.findAll(pageable)
+    public Page<UserSummary> list(PageableRequest pageable) {
+        return userRepository.findAll(pageable.toPageable())
                 .map(summaryMapper::toDto);
     }
 
