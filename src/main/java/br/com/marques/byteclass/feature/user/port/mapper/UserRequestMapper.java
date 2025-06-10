@@ -3,7 +3,9 @@ package br.com.marques.byteclass.feature.user.port.mapper;
 import org.mapstruct.*;
 import br.com.marques.byteclass.feature.user.port.dto.UserRequest;
 import br.com.marques.byteclass.feature.user.domain.User;
+import org.springframework.context.annotation.Primary;
 
+@Primary
 @Mapper(componentModel = "spring")
 public interface UserRequestMapper {
 

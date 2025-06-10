@@ -5,7 +5,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import br.com.marques.byteclass.feature.task.domain.Task;
 import br.com.marques.byteclass.feature.task.port.dto.TaskSummary;
+import org.springframework.context.annotation.Primary;
 
+@Primary
 @Mapper(componentModel = "spring")
 public interface TaskResponseMapper {
 

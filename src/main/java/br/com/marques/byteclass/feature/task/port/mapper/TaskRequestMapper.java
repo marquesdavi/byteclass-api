@@ -1,16 +1,18 @@
 package br.com.marques.byteclass.feature.task.port.mapper;
 
-import br.com.marques.byteclass.feature.task.port.dto.ChoiceRequest;
-import br.com.marques.byteclass.feature.task.port.dto.OpenTextRequest;
 import br.com.marques.byteclass.feature.task.domain.Task;
 import br.com.marques.byteclass.feature.task.domain.Type;
+import br.com.marques.byteclass.feature.task.port.dto.ChoiceRequest;
+import br.com.marques.byteclass.feature.task.port.dto.OpenTextRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.springframework.context.annotation.Primary;
 
 @Mapper(
         componentModel = "spring",
         imports = { Type.class }
 )
+@Primary
 public interface TaskRequestMapper {
     @Mapping(target = "id",        ignore = true)
     @Mapping(source = "courseId",  target = "courseId")
